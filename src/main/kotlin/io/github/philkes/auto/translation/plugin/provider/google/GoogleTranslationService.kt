@@ -44,4 +44,11 @@ class GoogleTranslationService(private val service: Translate, private val model
         }
         return results
     }
+
+    override fun getSupportedLanguages(): List<String> {
+        return service
+            .listSupportedLanguages()
+            .sortedBy { it.code }
+            .map { language -> "${language.code} (${language.name})" }
+    }
 }

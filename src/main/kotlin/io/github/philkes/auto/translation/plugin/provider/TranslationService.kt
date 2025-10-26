@@ -19,6 +19,9 @@ abstract class TranslationService {
         )
     }
 
+    /** List all supported languages of the Translation Provider */
+    abstract fun getSupportedLanguages(): List<String>
+
     /** Translate a batch of texts; implementations may optimize roundtrips. */
     protected abstract fun translateBatch(
         texts: List<String>,

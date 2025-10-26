@@ -23,12 +23,13 @@ class OpenAITranslationService(
     )
 
     private val objectMapper = jacksonObjectMapper()
-    private val exampleMsg: String
-    private val exampleResponse: String
+    private val exampleTranslateMsg: String
+    private val exampleTranslateResponse: String
 
     init {
-        exampleMsg = OpenAiTranslateRequest("en", "de", listOf("Hello", "What is this?")).toJson()
-        exampleResponse = OpenAiTranslateResponse(listOf("Hallo", "Was ist das?")).toJson()
+        exampleTranslateMsg =
+            OpenAiTranslateRequest("en", "de", listOf("Hello", "What is this?")).toJson()
+        exampleTranslateResponse = OpenAiTranslateResponse(listOf("Hallo", "Was ist das?")).toJson()
     }
 
     override fun translateBatch(
@@ -42,8 +43,8 @@ class OpenAITranslationService(
                 .model(model)
                 .responseFormat(OpenAiTranslateResponse::class.java)
                 .addSystemMessage(systemMessage)
-                .addUserMessage(exampleMsg)
-                .addAssistantMessage(exampleResponse)
+                .addUserMessage(exampleTranslateMsg)
+                .addAssistantMessage(exampleTranslateResponse)
                 .addUserMessage(
                     OpenAiTranslateRequest(sourceLanguage, targetLanguage, texts).toJson()
                 )
@@ -60,6 +61,28 @@ class OpenAITranslationService(
             .translatedTexts
     }
 
+    override fun getSupportedLanguages(): List<String> {
+        val params =
+            ChatCompletionCreateParams.builder()
+                .model(model)
+                .responseFormat(OpenAiLanguagesResponse::class.java)
+                .addSystemMessage(DEFAULT_LANGUAGES_SYSTEM_MESSAGE)
+                .addUserMessage("List all supported languages for translation")
+                .build()
+        return client
+            .chat()
+            .completions()
+            .create(params)
+            .choices()
+            .first()
+            .message()
+            .content()
+            .get()
+            .languages
+            .sortedBy { it.languageCode }
+            .map { "${it.languageCode} (${it.languageName})" }
+    }
+
     data class OpenAiTranslateRequest(
         val srcLang: String,
         val targetLang: String,
@@ -70,11 +93,15 @@ class OpenAITranslationService(
 
     data class OpenAiTranslateResponse(val translatedTexts: List<String>)
 
+    data class OpenAiLanguagesResponse(val languages: List<OpenAiLanguageResponse>)
+
+    data class OpenAiLanguageResponse(val languageCode: String, val languageName: String)
+
     fun OpenAiTranslateResponse.toJson() = objectMapper.writeValueAsString(this)
 
     companion object {
         /** System prompt to tell ChatGPT its a translator. */
-        val DEFAULT_SYSTEM_MESSAGE =
+        val DEFAULT_TRANSLATION_SYSTEM_MESSAGE =
             """
                 You're a professional translator for software projects, especially Android apps.
                 You are given text in a specified source language, and should translate it in the most suitable way to the specified target language.
@@ -84,6 +111,14 @@ class OpenAITranslationService(
                  - the texts' source language ('srcLang'),
                  - the desired target languages ('targetLangs'),
                  - the list of texts that should be translated.
+            """
+                .trimIndent()
+
+        /** System prompt to tell ChatGPT its a translator and return every possible language. */
+        val DEFAULT_LANGUAGES_SYSTEM_MESSAGE =
+            """
+            You're a professional translator for software projects, especially Android apps.
+               If the user asks you to list all supported languages for translations you will respond exactly with that.
             """
                 .trimIndent()
     }

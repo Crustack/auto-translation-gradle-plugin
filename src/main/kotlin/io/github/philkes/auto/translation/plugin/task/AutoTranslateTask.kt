@@ -1,21 +1,10 @@
 package io.github.philkes.auto.translation.plugin.task
 
-import io.github.philkes.auto.translation.plugin.config.AzureConfig
-import io.github.philkes.auto.translation.plugin.config.DeepLConfig
 import io.github.philkes.auto.translation.plugin.config.FastlaneTranslationConfig
-import io.github.philkes.auto.translation.plugin.config.GoogleConfig
-import io.github.philkes.auto.translation.plugin.config.LibreTranslateConfig
-import io.github.philkes.auto.translation.plugin.config.OpenAIConfig
 import io.github.philkes.auto.translation.plugin.config.ProviderConfig
 import io.github.philkes.auto.translation.plugin.config.StringsXmlTranslationConfig
-import io.github.philkes.auto.translation.plugin.provider.TestTranslationService
 import io.github.philkes.auto.translation.plugin.provider.TranslationService
-import io.github.philkes.auto.translation.plugin.provider.azure.AzureTranslationService
-import io.github.philkes.auto.translation.plugin.provider.deepl.DeepLTranslationService
-import io.github.philkes.auto.translation.plugin.provider.google.GoogleTranslationService
-import io.github.philkes.auto.translation.plugin.provider.libretranslate.LibreTanslateTranslationService
-import io.github.philkes.auto.translation.plugin.provider.openai.OpenAITranslationService
-import io.github.philkes.auto.translation.plugin.util.isUnitTest
+import io.github.philkes.auto.translation.plugin.util.createTranslationService
 import io.github.philkes.auto.translation.plugin.util.listStringsXmlFilesRecursively
 import io.github.philkes.auto.translation.plugin.util.listTxtFilesRecursively
 import io.github.philkes.auto.translation.plugin.util.readableClassName
@@ -83,7 +72,7 @@ abstract class AutoTranslateTask @Inject constructor(objects: ObjectFactory) : D
     @get:Optional @get:OutputFiles abstract val changedFastlaneFiles: ListProperty<File>
 
     init {
-        description = "Auto-translate Android strings.xml files"
+        description = "Auto-translate Android strings.xml and fastlane files"
         group = "translations"
         // Defaults
         sourceLanguage.convention("en-US")
@@ -189,27 +178,6 @@ abstract class AutoTranslateTask @Inject constructor(objects: ObjectFactory) : D
             } else {
                 logger.debug("Skipping translateFastlane because it is disabled")
             }
-        }
-    }
-
-    private fun createTranslationService(provider: ProviderConfig): TranslationService {
-        if (isUnitTest) {
-            return TestTranslationService()
-        }
-        try {
-            logger.debug("Provider: ${provider.toLogString()}")
-            return when (provider) {
-                is DeepLConfig -> DeepLTranslationService(provider)
-                is GoogleConfig -> GoogleTranslationService(provider)
-                is AzureConfig -> AzureTranslationService(provider)
-                is LibreTranslateConfig -> LibreTanslateTranslationService(provider)
-                is OpenAIConfig -> OpenAITranslationService(provider)
-            }
-        } catch (e: Exception) {
-            throw GradleException(
-                "Configuration of Client for ${provider.readableClassName} failed: ${e.message}",
-                e,
-            )
         }
     }
 }

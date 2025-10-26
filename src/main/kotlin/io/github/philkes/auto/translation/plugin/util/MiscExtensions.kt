@@ -1,7 +1,22 @@
 package io.github.philkes.auto.translation.plugin.util
 
+import io.github.philkes.auto.translation.plugin.config.AzureConfig
+import io.github.philkes.auto.translation.plugin.config.DeepLConfig
+import io.github.philkes.auto.translation.plugin.config.GoogleConfig
+import io.github.philkes.auto.translation.plugin.config.LibreTranslateConfig
+import io.github.philkes.auto.translation.plugin.config.OpenAIConfig
+import io.github.philkes.auto.translation.plugin.config.ProviderConfig
+import io.github.philkes.auto.translation.plugin.provider.TestTranslationService
+import io.github.philkes.auto.translation.plugin.provider.TranslationService
+import io.github.philkes.auto.translation.plugin.provider.azure.AzureTranslationService
+import io.github.philkes.auto.translation.plugin.provider.deepl.DeepLTranslationService
+import io.github.philkes.auto.translation.plugin.provider.google.GoogleTranslationService
+import io.github.philkes.auto.translation.plugin.provider.libretranslate.LibreTanslateTranslationService
+import io.github.philkes.auto.translation.plugin.provider.openai.OpenAITranslationService
 import java.io.File
 import java.util.Locale
+import org.gradle.api.GradleException
+import org.gradle.api.Task
 
 fun String.toIsoLocale(): Locale? {
     if (isBlank()) return null
@@ -49,4 +64,25 @@ fun File.listStringsXmlFilesRecursively(): List<File> {
     return walkTopDown()
         .filter { it.isFile && it.nameWithoutExtension == "strings" && it.extension == "xml" }
         .toList()
+}
+
+fun Task.createTranslationService(provider: ProviderConfig): TranslationService {
+    if (isUnitTest) {
+        return TestTranslationService()
+    }
+    try {
+        logger.debug("Provider: ${provider.toLogString()}")
+        return when (provider) {
+            is DeepLConfig -> DeepLTranslationService(provider)
+            is GoogleConfig -> GoogleTranslationService(provider)
+            is AzureConfig -> AzureTranslationService(provider)
+            is LibreTranslateConfig -> LibreTanslateTranslationService(provider)
+            is OpenAIConfig -> OpenAITranslationService(provider)
+        }
+    } catch (e: Exception) {
+        throw GradleException(
+            "Configuration of Client for ${provider.readableClassName} failed: ${e.message}",
+            e,
+        )
+    }
 }

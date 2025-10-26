@@ -172,6 +172,16 @@ provider = openAI {
 }
 ```
 
+### List Supported Languages
+
+To get a list of every supported language for your specified Provider run:
+
+```shell
+./gradlew autoTranslateSupportedLanguages
+```
+
+_Note: If you are using OpenAI the response can be false/incomplete since it is not an explicit translation provider (see [Providers/OpenAI](#openai) for details)_
+
 ### Github Action
 
 If you want to integrate the plugin into a Github Action Workflow:

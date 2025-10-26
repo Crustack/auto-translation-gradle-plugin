@@ -32,7 +32,7 @@ abstract class OpenAIConfig @Inject constructor(objects: ObjectFactory) : Provid
     /**
      * Optional overwrite the used system message.
      *
-     * Defaults to: [OpenAITranslationService.DEFAULT_SYSTEM_MESSAGE]
+     * Defaults to: [OpenAITranslationService.DEFAULT_TRANSLATION_SYSTEM_MESSAGE]
      */
     @get:Input
     @get:Optional
@@ -40,7 +40,7 @@ abstract class OpenAIConfig @Inject constructor(objects: ObjectFactory) : Provid
 
     init {
         model.convention(ChatModel.GPT_4O_MINI.toString())
-        systemMessage.convention(OpenAITranslationService.DEFAULT_SYSTEM_MESSAGE)
+        systemMessage.convention(OpenAITranslationService.DEFAULT_TRANSLATION_SYSTEM_MESSAGE)
     }
 
     @Internal

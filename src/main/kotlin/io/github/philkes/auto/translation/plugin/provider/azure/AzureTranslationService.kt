@@ -30,4 +30,10 @@ class AzureTranslationService(private val service: TextTranslationClient) : Tran
         val translations = service.translate(texts, translateOptions)
         return translations.map { it.translations.first().text }
     }
+
+    override fun getSupportedLanguages(): List<String> {
+        return service.supportedLanguages.translation
+            .map { (key, language) -> "$key (${language.name})" }
+            .sorted()
+    }
 }

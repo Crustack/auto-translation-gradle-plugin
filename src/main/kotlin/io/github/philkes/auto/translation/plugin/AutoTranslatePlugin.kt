@@ -2,6 +2,7 @@ package io.github.philkes.auto.translation.plugin
 
 import io.github.philkes.auto.translation.plugin.config.AutoTranslateExtension
 import io.github.philkes.auto.translation.plugin.task.AutoTranslateTask
+import io.github.philkes.auto.translation.plugin.task.ListSupportedLanguagesTask
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -26,9 +27,20 @@ class AutoTranslatePlugin : Plugin<Project> {
                 }
             },
         )
+
+        project.tasks.register(
+            LIST_LANGUAGES_TASK,
+            ListSupportedLanguagesTask::class.java,
+            object : Action<ListSupportedLanguagesTask> {
+                override fun execute(task: ListSupportedLanguagesTask) {
+                    extension.provider.orNull?.let { task.provider.set(it) }
+                }
+            },
+        )
     }
 
     companion object {
         const val AUTO_TRANSLATE_TASK = "autoTranslate"
+        const val LIST_LANGUAGES_TASK = "autoTranslateSupportedLanguages"
     }
 }

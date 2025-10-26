@@ -37,6 +37,12 @@ class DeepLTranslationService(
         return results.map { it.text }
     }
 
+    override fun getSupportedLanguages(): List<String> {
+        return client.targetLanguages
+            .sortedBy { it.code }
+            .map { language -> "${language.code} (${language.name})" }
+    }
+
     /**
      * See
      * [DeepL Supported Languages](https://developers.deepl.com/docs/getting-started/supported-languages)
