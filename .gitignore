@@ -37,3 +37,5 @@ bin/
 
 translations.xlsx
 app/
+
+src/test/kotlin/io/github/philkes/auto/translation/plugin/PlayTests.kt
