@@ -4,6 +4,7 @@ import io.github.philkes.auto.translation.plugin.provider.TextFormat
 import io.github.philkes.auto.translation.plugin.provider.TranslationService
 import io.github.philkes.auto.translation.plugin.util.StringsXmlHelper
 import io.github.philkes.auto.translation.plugin.util.androidCode
+import io.github.philkes.auto.translation.plugin.util.isoCode
 import io.github.philkes.auto.translation.plugin.util.toIsoLocale
 import java.io.File
 import java.util.Locale
@@ -27,7 +28,7 @@ class StringsXmlTranslator(private val logger: Logger) {
             logger.lifecycle("No targetLanguages resolved. Nothing to translate.")
             return
         } else {
-            logger.lifecycle("Translating for targetLanguages: ${targets.map { it.key }}")
+            logger.lifecycle("Translating for targetLanguages: ${targets.map { it.key.isoCode }}")
         }
         val sourceDir = File(valuesParentFolder, "values")
         val sourceStringsFile = File(sourceDir, "strings.xml")
@@ -49,7 +50,7 @@ class StringsXmlTranslator(private val logger: Logger) {
             val missingKeys = sourceStrings.keys.filter { it !in existing.keys }
             if (missingKeys.isEmpty()) {
                 logger.lifecycle(
-                    "[$locale] All strings already present (${existing.size}). Skipping."
+                    "[${locale.isoCode}] All strings already present (${existing.size}). Skipping."
                 )
                 return@forEach
             }
@@ -63,7 +64,7 @@ class StringsXmlTranslator(private val logger: Logger) {
                 try {
                     service.translateBatch(maskedTexts, TextFormat.HTML, srcLang, locale)
                 } catch (e: Exception) {
-                    logger.error("[$locale] Translation failed: ${e.message}", e)
+                    logger.error("[${locale.isoCode}] Translation failed: ${e.message}", e)
                     return@forEach
                 }
 
@@ -80,7 +81,7 @@ class StringsXmlTranslator(private val logger: Logger) {
             if (!targetDir.exists()) targetDir.mkdirs()
             xml.write(targetStringsFile, merged)
             logger.lifecycle(
-                "[$locale] Wrote ${additions.size} new translations. Total strings now: ${merged.size}."
+                "[${locale.isoCode}] Wrote ${additions.size} new translations. Total strings now: ${merged.size}."
             )
         }
     }
@@ -97,7 +98,7 @@ class StringsXmlTranslator(private val logger: Logger) {
                 if (locale == null) {
                     if (log)
                         logger.warn(
-                            "[$code] found non ISO Code targetLanguage: '$code', will skip translation for it"
+                            "Found non ISO Code values folder: '$code', will skip translation for it"
                         )
                     null
                 } else {

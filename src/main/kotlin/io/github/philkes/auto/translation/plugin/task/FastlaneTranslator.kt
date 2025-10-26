@@ -56,37 +56,31 @@ class FastlaneTranslator(private val logger: Logger) {
             return emptyList()
         }
 
-        val sourceCode = sourceDir.name
         // Determine targets: either explicit or from metadata folders
         val targetCodes: List<String> =
             if (targetLanguages.isNotEmpty()) targetLanguages.sorted()
             else allLocaleDirs.map { it.name }.filterNot { it in excludeLanguages }.sorted()
-
-        val targets: List<Pair<Locale, String>> =
-            targetCodes
-                .mapNotNull { code ->
-                    val loc = code.toIsoLocale()
-                    if (loc == null) {
-                        if (log) logger.warn("[Fastlane:$code] Not a valid ISO locale. Skipping.")
-                        null
-                    } else {
-                        Pair(loc, code)
-                    }
+        val targets: List<String> =
+            targetCodes.mapNotNull { code ->
+                val loc = code.toIsoLocale()
+                if (loc == null) {
+                    if (log) logger.warn("[Fastlane:$code] Not a valid ISO locale. Skipping.")
+                    null
+                } else {
+                    code
                 }
-                .filter { (_, code) -> code != sourceCode }
-        if (targets.isEmpty()) return emptyList()
-
-        val missingOutputs = ArrayList<File>()
-        targets.forEach { (_, targetCode) ->
+            }
+        val outputFiles = ArrayList<File>()
+        targets.forEach { targetCode ->
             val mappings =
                 sourceFiles.map { src ->
                     val relative = src.relativeTo(sourceDir).path
                     val outFile = File(metadataRoot, "$targetCode/$relative")
-                    FileMapping(src, relative, outFile)
+                    outFile
                 }
-            missingOutputs += mappings.filter { (_, _, out) -> !out.exists() }.map { it.out }
+            outputFiles += mappings
         }
-        return missingOutputs
+        return outputFiles
     }
 
     /**

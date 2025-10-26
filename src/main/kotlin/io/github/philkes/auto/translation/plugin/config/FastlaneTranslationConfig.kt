@@ -1,78 +1,57 @@
 package io.github.philkes.auto.translation.plugin.config
 
 import io.github.philkes.auto.translation.plugin.task.AutoTranslateTask
-import javax.inject.Inject
 import org.gradle.api.Project
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.SetProperty
+import org.gradle.api.file.Directory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
 
 /** Configuration for translating Fastlane metadata files. */
-open class FastlaneTranslationConfig @Inject constructor(objects: ObjectFactory) {
-
+data class FastlaneTranslationConfig
+@JvmOverloads
+constructor(
     /**
      * Whether to translate Fastlane metadata text files.
      *
      * Defaults to `false`.
      */
-    @get:Input @get:Optional val enabled: Property<Boolean> = objects.property(Boolean::class.java)
-
+    @get:Input var enabled: Boolean,
     /**
      * Path to Fastlane metadata root directory (contains locale subfolders like `en-US`).
      *
      * Defaults to `${projectDir}/fastlane/metadata/android`.
      */
-    @get:InputDirectory
-    @get:Optional
-    val metadataDirectory: DirectoryProperty = objects.directoryProperty()
+    @get:InputDirectory @get:Optional var metadataDirectory: Directory,
 
     /**
      * Language ISO-Code of the source fastlane files (folder name under metadataDirectory).
      *
      * Defaults to the task's sourceLanguage ([AutoTranslateTask.sourceLanguage])
      */
-    @get:Input
-    @get:Optional
-    val sourceLanguage: Property<String> = objects.property(String::class.java)
+    @get:Input @get:Optional var sourceLanguage: String,
 
     /**
      * Language ISO-Codes (from '[metadataDirectory]/{targetLanguage}' folder names) to translate.
      *
      * Defaults to task's targetLanguages ([AutoTranslateTask.targetLanguages])
      */
-    @get:Input
-    @get:Optional
-    val targetLanguages: SetProperty<String> = objects.setProperty(String::class.java)
+    @get:Input @get:Optional var targetLanguages: Set<String>,
+) {
 
     companion object {
 
         internal fun default(
-            objects: ObjectFactory,
             project: Project,
-            task: AutoTranslateTask,
+            rootSourceLanguage: String,
+            rootTargetLanguages: Set<String>,
         ): FastlaneTranslationConfig {
-            return FastlaneTranslationConfig(objects).apply {
-                enabled.convention(false)
-                metadataDirectory.convention(
-                    enabled.map {
-                        if (it)
-                            project.rootProject.layout.projectDirectory.dir(
-                                "fastlane/metadata/android"
-                            )
-                        else
-                            project.layout
-                                .projectDirectory // TODO: Using some existing directory to not get
-                        // a
-                        // IllegalArgument
-                    }
-                )
-                sourceLanguage.convention(task.sourceLanguage)
-                targetLanguages.convention(task.targetLanguages)
-            }
+            return FastlaneTranslationConfig(
+                false,
+                project.rootProject.layout.projectDirectory.dir("fastlane/metadata/android"),
+                rootSourceLanguage,
+                rootTargetLanguages,
+            )
         }
     }
 }

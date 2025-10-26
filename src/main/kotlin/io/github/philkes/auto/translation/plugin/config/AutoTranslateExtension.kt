@@ -1,11 +1,15 @@
 package io.github.philkes.auto.translation.plugin.config
 
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.property
+import org.gradle.kotlin.dsl.setProperty
 
-open class AutoTranslateExtension(private val objects: ObjectFactory) {
+open class AutoTranslateExtension(
+    private val objects: ObjectFactory,
+    private val project: Project,
+) {
 
     /**
      * Language of the source strings (`src/main/res/values/strings.xml`). Defaults to: `en`
@@ -17,13 +21,13 @@ open class AutoTranslateExtension(private val objects: ObjectFactory) {
      * Language ISO-Codes (from `values-{iso-code}` folder names) to translate. By defaults detects
      * all available langauges from the `src/main/res` folder.
      */
-    val targetLanguages = objects.listProperty<String>().convention(emptyList())
+    val targetLanguages = objects.setProperty<String>().convention(emptySet())
 
     /**
      * Languages to exclude when targetLanguages is not set. Useful to skip some autodetected
      * languages.
      */
-    val excludeLanguages = objects.listProperty<String>().convention(emptyList())
+    val excludeLanguages = objects.setProperty<String>().convention(emptySet())
 
     /** Provide Strings.xml translation configuration. */
     val translateStringsXml: Property<StringsXmlTranslationConfig> =
@@ -75,7 +79,7 @@ open class AutoTranslateExtension(private val objects: ObjectFactory) {
     fun translateStringsXml(
         action: StringsXmlTranslationConfig.() -> Unit
     ): StringsXmlTranslationConfig {
-        val cfg = objects.newInstance(StringsXmlTranslationConfig::class.java)
+        val cfg = StringsXmlTranslationConfig.default(project)
         cfg.action()
         this.translateStringsXml.set(cfg)
         return cfg
@@ -83,7 +87,8 @@ open class AutoTranslateExtension(private val objects: ObjectFactory) {
 
     /** Create a [FastlaneTranslationConfig] to configure Fastlane metadata translation. */
     fun translateFastlane(action: FastlaneTranslationConfig.() -> Unit): FastlaneTranslationConfig {
-        val cfg = objects.newInstance(FastlaneTranslationConfig::class.java)
+        val cfg =
+            FastlaneTranslationConfig.default(project, sourceLanguage.get(), targetLanguages.get())
         cfg.action()
         this.translateFastlane.set(cfg)
         return cfg
