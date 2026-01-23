@@ -15,6 +15,42 @@ import org.w3c.dom.Element
 class StringsXmlHelper(private val logger: Logger) {
 
     /**
+     * Escape special characters for Android string resources. Android requires escaping
+     * apostrophes, double quotes, backslashes, and @ or ? at the start of a string.
+     *
+     * This function first normalises the input by removing any existing Android escapes,
+     * then applies consistent escaping. This prevents double-escaping if the translation
+     * provider returns pre-escaped text.
+     */
+    internal fun escapeForAndroid(text: String): String {
+        if (text.isEmpty()) return text
+
+        // First, unescape any Android escapes that might already be present.
+        // Order matters: unescape \\ last to avoid interference.
+        val normalised =
+            text
+                .replace("\\'", "'")
+                .replace("\\\"", "\"")
+                .replace("\\@", "@")
+                .replace("\\?", "?")
+                .replace("\\\\", "\\")
+
+        // Then apply consistent escaping.
+        // Order matters: escape \\ first to avoid double-escaping.
+        val escaped =
+            normalised
+                .replace("\\", "\\\\")
+                .replace("'", "\\'")
+                .replace("\"", "\\\"")
+
+        return when {
+            escaped.startsWith("@") -> "\\$escaped"
+            escaped.startsWith("?") -> "\\$escaped"
+            else -> escaped
+        }
+    }
+
+    /**
      * Parse a strings.xml file and return a map of name -> text, skipping entries with
      * translatable="false". Also supports <plurals> by expanding each quantity into a separate
      * entry using the key pattern: "name[quantity]". Throws GradleException if the file cannot be
@@ -120,7 +156,7 @@ class StringsXmlHelper(private val logger: Logger) {
                 if (normal != null) {
                     val el = doc.createElement("string")
                     el.setAttribute("name", name)
-                    el.appendChild(doc.createTextNode(normal))
+                    el.appendChild(doc.createTextNode(escapeForAndroid(normal)))
                     resources.appendChild(el)
                 }
                 val qmap = pluralGroups[name]
@@ -130,7 +166,7 @@ class StringsXmlHelper(private val logger: Logger) {
                     qmap.toSortedMap(quantityComparator).forEach { (quantity, value) ->
                         val itemEl = doc.createElement("item")
                         itemEl.setAttribute("quantity", quantity)
-                        itemEl.appendChild(doc.createTextNode(value))
+                        itemEl.appendChild(doc.createTextNode(escapeForAndroid(value)))
                         pluralsEl.appendChild(itemEl)
                     }
                     resources.appendChild(pluralsEl)

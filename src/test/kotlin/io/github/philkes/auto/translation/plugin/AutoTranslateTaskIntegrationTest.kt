@@ -24,6 +24,7 @@ class AutoTranslateTaskIntegrationTest {
               <string name="hello">Hello</string>
               <string name="bye">Bye %1${dollar}s</string>
               <string name="items">Items title</string>
+              <string name="apostrophe_test">It's working today</string>
               <plurals name="items">
                 <item quantity="one">item</item>
                 <item quantity="other">items</item>
@@ -130,6 +131,21 @@ class AutoTranslateTaskIntegrationTest {
         assertTrue(frItemOneIndex < frItemOtherIndex, "FR plurals quantities have wrong order!")
         // Ensure translatable=false key not added
         assertTrue(!frContent.contains("skip_me"))
+        // Verify apostrophes are properly escaped for Android
+        val frApostropheIndex =
+            frContent.indexOf("<string name=\"apostrophe_test\">It\\'s working today [FR]</string>")
+        assertNotEquals(
+            -1,
+            frApostropheIndex,
+            "Apostrophe should be escaped in FR translation",
+        )
+        val deApostropheIndex =
+            deContent.indexOf("<string name=\"apostrophe_test\">It\\'s working today [DE]</string>")
+        assertNotEquals(
+            -1,
+            deApostropheIndex,
+            "Apostrophe should be escaped in DE translation",
+        )
     }
 
     private fun writeFile(file: File, content: String) {
