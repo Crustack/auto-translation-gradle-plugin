@@ -25,7 +25,7 @@ Gradle plugin to automatically translate your Android project (`strings.xml` + F
 In `build.gradle.kts`:
 ```kotlin
 plugins {
-    id("io.github.philkes.auto-translation") version "1.0.0"
+    id("io.github.philkes.auto-translation") version "1.0.2"
 }
 
 // Minimal example: translate strings.xml for all present language folders using DeepL
