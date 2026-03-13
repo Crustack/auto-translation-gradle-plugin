@@ -120,7 +120,6 @@ abstract class AutoTranslateTask @Inject constructor(objects: ObjectFactory) : D
         val translationService: TranslationService = createTranslationService(provider)
 
         val taskExcludeLanguages = excludeLanguages.get()
-        logger.lifecycle("translateStringsXml: ${translateStringsXml.get()}")
         // Strings.xml translation via wrapper config (enabled by default)
         translateStringsXml.orNull?.let { stringsXmlConfig ->
             val stringsEnabled = stringsXmlConfig.enabled.orNull ?: true
