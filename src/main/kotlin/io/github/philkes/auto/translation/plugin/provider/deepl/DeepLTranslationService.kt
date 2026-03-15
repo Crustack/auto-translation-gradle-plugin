@@ -45,10 +45,11 @@ class DeepLTranslationService(
             return Locale.ENGLISH.language
         }
         val isoCodeUppercase =
-            when (locale) {
-                Locale.SIMPLIFIED_CHINESE -> "ZH-HANS"
-                Locale.TRADITIONAL_CHINESE -> "ZH-HANT"
-                Locale.UK, Locale.US, ES_LATAM, PT_BR, PT_PT -> locale.isoCode.uppercase()
+            when  {
+                locale == Locale.SIMPLIFIED_CHINESE -> "ZH-HANS"
+                locale == Locale.TRADITIONAL_CHINESE -> "ZH-HANT"
+                locale in setOf(Locale.UK, Locale.US, ES_LATAM) -> locale.isoCode.uppercase()
+                locale.language == "pt" -> "${locale.language}-${locale.country}".uppercase()
                 else -> locale.isoCode.uppercase().substringBefore("-")
             }
         return isoCodeUppercase
@@ -56,7 +57,5 @@ class DeepLTranslationService(
 
     companion object{
         private val ES_LATAM: Locale? = Locale.forLanguageTag("es-419")
-        private val PT_BR = Locale.forLanguageTag("pt-BR")
-        private val PT_PT = Locale.forLanguageTag("pt-PT")
     }
 }
