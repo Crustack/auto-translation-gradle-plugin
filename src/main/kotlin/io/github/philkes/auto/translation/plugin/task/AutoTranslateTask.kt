@@ -157,7 +157,7 @@ abstract class AutoTranslateTask @Inject constructor(objects: ObjectFactory) : D
             if (fastlaneEnabled) {
                 val metaDir =
                     (fastlaneConfig.metadataDirectory.orNull
-                            ?: project.layout.projectDirectory.dir("fastlane/metadata/android"))
+                            ?: project.rootProject.layout.projectDirectory.dir("fastlane/metadata/android"))
                         .asFile
                 if (!metaDir.exists()) {
                     throw GradleException(
